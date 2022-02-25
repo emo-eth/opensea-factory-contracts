@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Modified 2022 from github.com/divergencetech/ethier
+
 pragma solidity ^0.8.12;
 
 import {FactoryMintableERC1155} from "../FactoryMintableERC1155.sol";

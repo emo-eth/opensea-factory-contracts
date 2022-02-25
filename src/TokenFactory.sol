@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// Modified 2022 from github.com/divergencetech/ethier
 pragma solidity ^0.8.12;
 
 import {OwnerPausable} from "ac/util/OwnerPausable.sol";
@@ -7,6 +6,7 @@ import {Strings} from "oz/utils/Strings.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
 import {AllowsConfigurableProxy} from "ac/util/AllowsConfigurableProxy.sol";
 
+/// @author emo.eth
 contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     using Strings for uint256;
     uint256 public immutable NUM_OPTIONS;
