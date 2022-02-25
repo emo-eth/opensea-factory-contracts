@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: MIT
+// Modified 2022 from github.com/divergencetech/ethier
 pragma solidity ^0.8.12;
 
 import {OwnerPausable} from "ac/util/OwnerPausable.sol";
 import {Strings} from "oz/utils/Strings.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
 import {AllowsConfigurableProxy} from "ac/util/AllowsConfigurableProxy.sol";
+import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
 
 /// @author emo.eth
-contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
+contract TokenFactory is
+    OwnerPausable,
+    AllowsConfigurableProxy,
+    ReentrancyGuard
+{
     using Strings for uint256;
     uint256 public immutable NUM_OPTIONS;
 
@@ -22,8 +28,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     string public baseOptionURI;
 
     /**
-    @notice Standard ERC721 Transfer event, used to trigger OpenSea into
-    recognising the existence of the factory.
+    @notice Standard ERC721 Transfer event, used to trigger indexing of tokens.
      */
     event Transfer(
         address indexed from,
@@ -34,15 +39,11 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     error NotOwnerOrProxy();
     error InvalidOptionId();
 
-    /**
-    @param owner Initial contract owner as it will be deployed by another
-    contract but ownership should be transferred to an EOA.
-     */
     constructor(
         string memory _name,
         string memory _symbol,
         string memory _baseOptionURI,
-        address owner,
+        address _owner,
         uint256 _numOptions,
         address _proxyAddress
     ) AllowsConfigurableProxy(_proxyAddress, true) {
@@ -51,7 +52,8 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
         token = FactoryMintable(msg.sender);
         baseOptionURI = _baseOptionURI;
         NUM_OPTIONS = _numOptions;
-        super.transferOwnership(owner);
+        // first owner will be the token that deploys the contract
+        transferOwnership(_owner);
         createOptionsAndEmitTransfers();
     }
 
@@ -66,6 +68,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     }
 
     modifier checkValidOptionId(uint256 _optionId) {
+        // options are 0-indexed so check should be inclusive
         if (_optionId >= NUM_OPTIONS) {
             revert InvalidOptionId();
         }
@@ -79,7 +82,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
 
     /**
     @notice Emits standard ERC721.Transfer events for each option so NFT indexers pick them up.
-    Does not need to fire on contract ownership transfer because once the tokens exist the `ownerOf`
+    Does not need to fire on contract ownership transfer because once the tokens exist, the `ownerOf`
     check will always pass for contract owner.
      */
     function createOptionsAndEmitTransfers() internal {
@@ -94,7 +97,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     }
 
     /**
-    @notice transfer
+    @notice hack: transferFrom is called on sale – this method mints the real token
      */
     function transferFrom(
         address,
@@ -102,6 +105,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
         uint256 _optionId
     )
         public
+        nonReentrant
         onlyOwnerOrProxy
         whenNotPaused
         interactBurnInvalidOptionId(_optionId)
@@ -115,6 +119,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
         uint256 _optionId
     )
         public
+        nonReentrant
         onlyOwnerOrProxy
         whenNotPaused
         interactBurnInvalidOptionId(_optionId)
@@ -123,7 +128,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     }
 
     /**
-    @dev Return true operator is an approved proxy of Owner
+    @dev Return true if operator is an approved proxy of Owner
      */
     function isApprovedForAll(address _owner, address _operator)
         public
@@ -134,7 +139,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     }
 
     /**
-    @dev Returns owner if _optionId is valid, else address(0) This ensures only listings made from owner will be validated
+    @notice Returns owner if _optionId is valid so posted orders pass validation
      */
     function ownerOf(uint256 _optionId) public view returns (address) {
         return token.factoryCanMint(_optionId) ? owner() : address(0);
@@ -148,13 +153,12 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
         return string.concat(baseOptionURI, _optionId.toString());
     }
 
-    /**
-    @notice "burn" option by sending it to 0 address. This will hide all active listings on OpenSea.
-    */
+    ///@notice public facing method for _burnInvalidOptions in case state of tokenContract changes
     function burnInvalidOptions() public onlyOwner {
         _burnInvalidOptions();
     }
 
+    ///@notice "burn" option by sending it to 0 address. This will hide all active listings. Called as part of interactBurnInvalidOptionIds
     function _burnInvalidOptions() internal {
         for (uint256 i; i < NUM_OPTIONS; ++i) {
             if (!token.factoryCanMint(i)) {
@@ -164,7 +168,7 @@ contract TokenFactory is OwnerPausable, AllowsConfigurableProxy {
     }
 
     /**
-    @notice emit a transfer event for a "burnt" option back to the owner, if parent contract
+    @notice emit a transfer event for a "burnt" option back to the owner if factoryCanMint the optionId
     @dev will re-validate listings on OpenSea frontend if an option becomes eligible to mint again
     eg, if max supply is increased
     */
