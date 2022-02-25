@@ -1,0 +1,5 @@
+ds-test/=./lib/ds-test/src/
+ac/=./lib/art-contracts/src/
+sm/=./lib/solmate/src/
+oz/=./lib/openzeppelin-contracts/contracts/
+std/=./lib/forge-std/src/
