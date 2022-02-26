@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+      "outDir": "./js",
+      "sourceMap": true
+    },
+    "include": ["scripts/**/*"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
+  }
