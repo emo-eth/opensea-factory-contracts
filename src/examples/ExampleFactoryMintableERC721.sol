@@ -4,31 +4,30 @@ pragma solidity ^0.8.12;
 
 import {FactoryMintableERC721} from "../FactoryMintableERC721.sol";
 import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
+import {Strings} from "oz/utils/Strings.sol";
 
 contract ExampleFactoryMintableERC721 is
     FactoryMintableERC721,
     ReentrancyGuard
 {
+    using Strings for uint256;
+
     uint256 public tokenIndex;
     uint256 public maxSupply;
 
     error NewMaxSupplyMustBeGreater();
 
     constructor(
-        string memory _name,
-        string memory _symbol,
-        string memory _baseUri,
         uint256 _maxSupply,
-        address _proxyAddress,
-        string memory _baseOptionURI,
+        address _proxy,
         uint256 _numOptions
     )
         FactoryMintableERC721(
-            _name,
-            _symbol,
-            _baseUri,
-            _proxyAddress,
-            _baseOptionURI,
+            "test",
+            "TEST",
+            "ipfs://test",
+            _proxy,
+            "ipfs://option",
             _numOptions
         )
     {

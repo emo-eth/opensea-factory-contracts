@@ -4,7 +4,7 @@ pragma solidity ^0.8.12;
 
 import {OwnerPausable} from "ac/util/OwnerPausable.sol";
 import {Strings} from "oz/utils/Strings.sol";
-import {ERC721} from "oz/token/ERC721/ERC721.sol";
+import {ERC721} from "sm/tokens/ERC721.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
 import {AllowsConfigurableProxy} from "ac/util/AllowsConfigurableProxy.sol";
 import {TokenFactory} from "./TokenFactory.sol";
@@ -15,6 +15,7 @@ abstract contract FactoryMintableERC721 is
     FactoryMintable,
     AllowsConfigurableProxy
 {
+    using Strings for uint256;
     string public baseURI;
 
     constructor(
@@ -38,7 +39,12 @@ abstract contract FactoryMintableERC721 is
         );
     }
 
-    function _baseURI() internal view virtual override returns (string memory) {
-        return baseURI;
+    function tokenURI(uint256 _tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        return string.concat(baseURI, _tokenId.toString());
     }
 }

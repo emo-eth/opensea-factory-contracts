@@ -9,24 +9,16 @@ contract ExampleFactoryMintableERC721Test is DSTestPlusPlus {
     ExampleFactoryMintableERC721 test;
 
     function setUp() public {
-        test = new ExampleFactoryMintableERC721(
-            "test",
-            "TEST",
-            "://test",
-            10000,
-            address(1),
-            "://option",
-            10000
-        );
+        test = new ExampleFactoryMintableERC721(10000, address(1), 10000);
     }
 
     function testConstructorInitializesValues() public {
         assertEq("test", test.name());
         assertEq("TEST", test.symbol());
-        assertEq("://test", test.baseURI());
+        assertEq("ipfs://test", test.baseURI());
         assertEq(address(1), test.proxyAddress());
         TokenFactory factory = TokenFactory(test.tokenFactory());
-        assertEq("://option", factory.baseOptionURI());
+        assertEq("ipfs://option", factory.baseOptionURI());
         assertEq(10000, factory.NUM_OPTIONS());
     }
 

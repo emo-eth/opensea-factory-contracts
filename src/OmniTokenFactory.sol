@@ -7,40 +7,29 @@ import {Strings} from "oz/utils/Strings.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
 import {AllowsConfigurableProxy} from "ac/util/AllowsConfigurableProxy.sol";
 import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
-import {ERC721} from "./token/ERC721.sol";
+import {ITokenFactory} from "./ITokenFactory.sol";
+import {IAllowsProxy} from "ac/util/IAllowsProxy.sol";
+import {Ownable} from "oz/access/Ownable.sol";
 
 /// @author emo.eth
-contract TokenFactory is
-    ERC721,
-    OwnerPausable,
-    AllowsConfigurableProxy,
-    ReentrancyGuard
-{
+abstract contract OmniTokenFactory is ITokenFactory, IAllowsProxy, Ownable {
     using Strings for uint256;
     uint256 public immutable NUM_OPTIONS;
 
-    /// @notice Contract that deployed this factory.
-    FactoryMintable public token;
-
-    /// @notice Base URI for constructing tokenURI values for options.
-    string public baseOptionURI;
+    /**
+    @notice Standard ERC721 Transfer event, used to trigger indexing of tokens.
+     */
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 indexed tokenId
+    );
 
     error NotOwnerOrProxy();
     error InvalidOptionId();
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        string memory _baseOptionURI,
-        address _owner,
-        uint256 _numOptions,
-        address _proxyAddress
-    ) ERC721(_name, _symbol) AllowsConfigurableProxy(_proxyAddress, true) {
-        token = FactoryMintable(msg.sender);
-        baseOptionURI = _baseOptionURI;
+    constructor(uint256 _numOptions) {
         NUM_OPTIONS = _numOptions;
-        // first owner will be the token that deploys the contract
-        transferOwnership(_owner);
         createOptionsAndEmitTransfers();
     }
 
@@ -78,11 +67,6 @@ contract TokenFactory is
         }
     }
 
-    /// @notice Sets the base URI for constructing tokenURI values for options.
-    function setBaseOptionURI(string memory _baseOptionURI) public onlyOwner {
-        baseOptionURI = _baseOptionURI;
-    }
-
     /**
     @notice hack: transferFrom is called on sale – this method mints the real token
      */
@@ -90,31 +74,13 @@ contract TokenFactory is
         address,
         address _to,
         uint256 _optionId
-    )
-        public
-        override
-        nonReentrant
-        onlyOwnerOrProxy
-        whenNotPaused
-        interactBurnInvalidOptionId(_optionId)
-    {
-        token.factoryMint(_optionId, _to);
-    }
+    ) public virtual;
 
     function safeTransferFrom(
         address,
         address _to,
         uint256 _optionId
-    )
-        public
-        override
-        nonReentrant
-        onlyOwnerOrProxy
-        whenNotPaused
-        interactBurnInvalidOptionId(_optionId)
-    {
-        token.factoryMint(_optionId, _to);
-    }
+    ) public virtual;
 
     /**
     @dev Return true if operator is an approved proxy of Owner
@@ -123,18 +89,18 @@ contract TokenFactory is
         public
         view
         virtual
-        override
-        returns (bool)
-    {
-        return isApprovedForProxy(_owner, _operator);
-    }
+        returns (bool);
+
+    function isApprovedForProxy(address _owner, address _operator)
+        public
+        view
+        virtual
+        returns (bool);
 
     /**
     @notice Returns owner if _optionId is valid so posted orders pass validation
      */
-    function ownerOf(uint256 _optionId) public view override returns (address) {
-        return token.factoryCanMint(_optionId) ? owner() : address(0);
-    }
+    function ownerOf(uint256 _optionId) public view virtual returns (address);
 
     /**
     @notice Returns a URL specifying option metadata, conforming to standard
@@ -143,38 +109,18 @@ contract TokenFactory is
     function tokenURI(uint256 _optionId)
         public
         view
-        override
-        returns (string memory)
-    {
-        return string.concat(baseOptionURI, _optionId.toString());
-    }
+        virtual
+        returns (string memory);
 
     ///@notice public facing method for _burnInvalidOptions in case state of tokenContract changes
-    function burnInvalidOptions() public onlyOwner {
-        _burnInvalidOptions();
-    }
+    function burnInvalidOptions() public virtual;
 
-    ///@notice "burn" option by sending it to 0 address. This will hide all active listings. Called as part of interactBurnInvalidOptionIds
-    function _burnInvalidOptions() internal {
-        for (uint256 i; i < NUM_OPTIONS; ++i) {
-            if (!token.factoryCanMint(i)) {
-                emit Transfer(owner(), address(0), i);
-            }
-        }
-    }
+    function _burnInvalidOptions() internal virtual;
 
     /**
     @notice emit a transfer event for a "burnt" option back to the owner if factoryCanMint the optionId
     @dev will re-validate listings on OpenSea frontend if an option becomes eligible to mint again
     eg, if max supply is increased
     */
-    function restoreOption(uint256 _optionId) external onlyOwner {
-        if (token.factoryCanMint(_optionId)) {
-            emit Transfer(address(0), owner(), _optionId);
-        }
-    }
-
-    function supportsFactoryInterface() external pure returns (bool) {
-        return true;
-    }
+    function restoreOption(uint256 _optionId) external virtual;
 }

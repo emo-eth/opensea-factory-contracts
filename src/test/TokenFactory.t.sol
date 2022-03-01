@@ -24,12 +24,8 @@ contract TokenFactoryTest is DSTestPlusPlus {
     function setUp() public {
         registry = new ProxyRegistryImpl();
         mintable = new ExampleFactoryMintableERC721(
-            "test",
-            "TEST",
-            "://test",
             5,
             address(registry),
-            "://option",
             maxOptionId
         );
 
@@ -41,7 +37,7 @@ contract TokenFactoryTest is DSTestPlusPlus {
     function testConstructorInitializesValues() public {
         assertEq(test.name(), "test Factory");
         assertEq(test.symbol(), "TESTFACTORY");
-        assertEq(test.tokenURI(0), "://option0");
+        assertEq(test.tokenURI(0), "ipfs://option0");
         assertEq(test.owner(), address(this));
         assertEq(test.proxyAddress(), address(registry));
         assertEq(test.NUM_OPTIONS(), 5);
@@ -156,7 +152,7 @@ contract TokenFactoryTest is DSTestPlusPlus {
     }
 
     function testTokenURI() public {
-        assertEq("://option1", test.tokenURI(1));
+        assertEq("ipfs://option1", test.tokenURI(1));
         test.setBaseOptionURI("hello");
         assertEq("hello1", test.tokenURI(1));
     }

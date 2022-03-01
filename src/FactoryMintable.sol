@@ -2,8 +2,9 @@
 pragma solidity ^0.8.12;
 
 import {Context} from "oz/utils/Context.sol";
+import {IFactoryMintable} from "./IFactoryMintable.sol";
 
-abstract contract FactoryMintable is Context {
+abstract contract FactoryMintable is IFactoryMintable, Context {
     address public tokenFactory;
 
     error NotTokenFactory();
