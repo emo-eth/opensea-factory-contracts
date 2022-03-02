@@ -40,7 +40,7 @@ const seaport = new OpenSeaPort(
 );
 
 async function main() {
-    console.log("Creating Invite List sale...");
+    console.log("Creating sale...");
 
     // listing activates in one minute
     const listingTime = Math.round(Date.now() / 1000) + 60;
@@ -48,7 +48,7 @@ async function main() {
     const expirationTime = listingTime + 60 * 60 * 24;
 
     const price = 0.1;
-    for (let i = 0; i < NUM_ORDERS; i += 10) {
+    for (let i = 0; i < NUM_ORDERS; ++i) {
         const orderArgs = {
             assets: [
                 {
@@ -60,7 +60,7 @@ async function main() {
             startAmount: price,
             listingTime: listingTime,
             expirationTime: expirationTime,
-            numberOfOrders: 10,
+            numberOfOrders: 1,
         };
         seaport.createFactorySellOrders(orderArgs);
 

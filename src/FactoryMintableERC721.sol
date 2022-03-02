@@ -39,6 +39,13 @@ abstract contract FactoryMintableERC721 is
         );
     }
 
+    function factoryCanMint(uint256 _tokenId)
+        public
+        view
+        virtual
+        override
+        returns (bool);
+
     function tokenURI(uint256 _tokenId)
         public
         view
