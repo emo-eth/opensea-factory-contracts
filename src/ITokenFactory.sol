@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Modified 2022 from github.com/divergencetech/ethier
-pragma solidity ^0.8.12;
+pragma solidity >=0.8.4;
 
 /// @author emo.eth
 interface ITokenFactory {

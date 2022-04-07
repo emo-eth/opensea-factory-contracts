@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.12;
+pragma solidity >=0.8.4;
 
 import {Context} from "oz/utils/Context.sol";
 import {IFactoryMintable} from "./IFactoryMintable.sol";

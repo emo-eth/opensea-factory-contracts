@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.12;
+pragma solidity >=0.8.4;
 
 import {FactoryMintableERC1155} from "../FactoryMintableERC1155.sol";
 import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";

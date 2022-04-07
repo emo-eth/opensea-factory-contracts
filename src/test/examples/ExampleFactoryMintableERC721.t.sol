@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.12;
+pragma solidity >=0.8.4;
 
 import {DSTestPlusPlus} from "ac/test/helpers/DSTestPlusPlus.sol";
 import {ExampleFactoryMintableERC721} from "../../examples/ExampleFactoryMintableERC721.sol";
