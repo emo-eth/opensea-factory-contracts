@@ -6,14 +6,14 @@ import {OwnerPausable} from "ac/util/OwnerPausable.sol";
 import {Strings} from "oz/utils/Strings.sol";
 import {ERC721} from "sm/tokens/ERC721.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
-import {AllowsConfigurableProxy} from "ac/util/AllowsConfigurableProxy.sol";
+import {AllowsProxyFromConfigurableRegistry} from "ac/util/AllowsProxyFromConfigurableRegistry.sol";
 import {TokenFactory} from "./TokenFactory.sol";
 
 abstract contract FactoryMintableERC721 is
     ERC721,
     OwnerPausable,
     FactoryMintable,
-    AllowsConfigurableProxy
+    AllowsProxyFromConfigurableRegistry
 {
     using Strings for uint256;
     string public baseURI;
@@ -25,7 +25,10 @@ abstract contract FactoryMintableERC721 is
         address _proxyAddress,
         string memory _baseOptionURI,
         uint256 _numOptions
-    ) ERC721(_name, _symbol) AllowsConfigurableProxy(_proxyAddress, true) {
+    )
+        ERC721(_name, _symbol)
+        AllowsProxyFromConfigurableRegistry(_proxyAddress, true)
+    {
         baseURI = _baseUri;
         tokenFactory = address(
             new TokenFactory(

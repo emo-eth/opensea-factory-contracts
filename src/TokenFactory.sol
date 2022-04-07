@@ -5,7 +5,7 @@ pragma solidity ^0.8.12;
 import {OwnerPausable} from "ac/util/OwnerPausable.sol";
 import {Strings} from "oz/utils/Strings.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
-import {AllowsConfigurableProxy} from "ac/util/AllowsConfigurableProxy.sol";
+import {AllowsProxyFromConfigurableRegistry} from "ac/util/AllowsProxyFromConfigurableRegistry.sol";
 import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
 import {ERC721} from "./token/ERC721.sol";
 
@@ -13,7 +13,7 @@ import {ERC721} from "./token/ERC721.sol";
 contract TokenFactory is
     ERC721,
     OwnerPausable,
-    AllowsConfigurableProxy,
+    AllowsProxyFromConfigurableRegistry,
     ReentrancyGuard
 {
     using Strings for uint256;
@@ -35,7 +35,10 @@ contract TokenFactory is
         address _owner,
         uint256 _numOptions,
         address _proxyAddress
-    ) ERC721(_name, _symbol) AllowsConfigurableProxy(_proxyAddress, true) {
+    )
+        ERC721(_name, _symbol)
+        AllowsProxyFromConfigurableRegistry(_proxyAddress, true)
+    {
         token = FactoryMintable(msg.sender);
         baseOptionURI = _baseOptionURI;
         NUM_OPTIONS = _numOptions;
@@ -45,10 +48,7 @@ contract TokenFactory is
     }
 
     modifier onlyOwnerOrProxy() {
-        if (
-            _msgSender() != owner() &&
-            !isApprovedForProxy(owner(), _msgSender())
-        ) {
+        if (_msgSender() != owner() && !isProxyOfOwner(owner(), _msgSender())) {
             revert NotOwnerOrProxy();
         }
         _;
@@ -126,7 +126,7 @@ contract TokenFactory is
         override
         returns (bool)
     {
-        return isApprovedForProxy(_owner, _operator);
+        return isProxyOfOwner(_owner, _operator);
     }
 
     /**
