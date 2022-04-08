@@ -5,7 +5,7 @@ pragma solidity >=0.8.0;
 /// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC721.sol)
 /// @dev Note that balanceOf does not revert if passed the zero address, in defiance of the ERC.
 abstract contract ERC721 {
-    /*///////////////////////////////////////////////////////////////
+    /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
@@ -27,8 +27,8 @@ abstract contract ERC721 {
         bool approved
     );
 
-    /*///////////////////////////////////////////////////////////////
-                          METADATA STORAGE/LOGIC
+    /*//////////////////////////////////////////////////////////////
+                         METADATA STORAGE/LOGIC
     //////////////////////////////////////////////////////////////*/
 
     string public name;
@@ -37,8 +37,8 @@ abstract contract ERC721 {
 
     function tokenURI(uint256 id) public view virtual returns (string memory);
 
-    /*///////////////////////////////////////////////////////////////
-                            ERC721 STORAGE                        
+    /*//////////////////////////////////////////////////////////////
+                             ERC721 STORAGE
     //////////////////////////////////////////////////////////////*/
 
     mapping(address => uint256) public balanceOf;
@@ -62,8 +62,8 @@ abstract contract ERC721 {
         return _isApprovedForAll[_owner][_operator];
     }
 
-    /*///////////////////////////////////////////////////////////////
-                              CONSTRUCTOR
+    /*//////////////////////////////////////////////////////////////
+                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
     constructor(string memory _name, string memory _symbol) {
@@ -71,7 +71,7 @@ abstract contract ERC721 {
         symbol = _symbol;
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /*//////////////////////////////////////////////////////////////
                               ERC721 LOGIC
     //////////////////////////////////////////////////////////////*/
 
@@ -105,8 +105,8 @@ abstract contract ERC721 {
 
         require(
             msg.sender == from ||
-                msg.sender == getApproved[id] ||
-                isApprovedForAll(from, msg.sender),
+                isApprovedForAll(from, msg.sender) ||
+                msg.sender == getApproved[id],
             "NOT_AUTHORIZED"
         );
 
@@ -166,13 +166,13 @@ abstract contract ERC721 {
         );
     }
 
-    /*///////////////////////////////////////////////////////////////
+    /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function supportsInterface(bytes4 interfaceId)
         public
-        pure
+        view
         virtual
         returns (bool)
     {
@@ -182,8 +182,8 @@ abstract contract ERC721 {
             interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
     }
 
-    /*///////////////////////////////////////////////////////////////
-                       INTERNAL MINT/BURN LOGIC
+    /*//////////////////////////////////////////////////////////////
+                        INTERNAL MINT/BURN LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function _mint(address to, uint256 id) internal virtual {
@@ -204,7 +204,7 @@ abstract contract ERC721 {
     function _burn(uint256 id) internal virtual {
         address owner = ownerOf(id);
 
-        require(ownerOf(id) != address(0), "NOT_MINTED");
+        require(owner != address(0), "NOT_MINTED");
 
         // Ownership check above ensures no underflow.
         unchecked {
@@ -218,8 +218,8 @@ abstract contract ERC721 {
         emit Transfer(owner, address(0), id);
     }
 
-    /*///////////////////////////////////////////////////////////////
-                       INTERNAL SAFE MINT LOGIC
+    /*//////////////////////////////////////////////////////////////
+                        INTERNAL SAFE MINT LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function _safeMint(address to, uint256 id) internal virtual {
