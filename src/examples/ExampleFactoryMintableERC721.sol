@@ -41,10 +41,14 @@ contract ExampleFactoryMintableERC721 is
         onlyFactory
         canMint(_optionId)
     {
+        // load from storage, read+write to memory
+        uint256 _tokenIndex = tokenIndex;
         for (uint256 i; i < _optionId; ++i) {
-            _mint(_to, tokenIndex);
-            ++tokenIndex;
+            _mint(_to, _tokenIndex);
+            ++_tokenIndex;
         }
+        // single write to storage
+        tokenIndex = _tokenIndex;
     }
 
     function factoryCanMint(uint256 _optionId)

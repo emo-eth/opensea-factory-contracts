@@ -42,10 +42,14 @@ contract ExampleFactoryMintableERC1155 is
         onlyFactory
         canMint(_optionId)
     {
-        for (uint256 i; i < _optionId; i++) {
-            _mint(_to, tokenIndex, 1, "");
-            ++tokenIndex;
+        // load from storage, read+write to memory
+        uint256 _tokenIndex = tokenIndex;
+        for (uint256 i; i < _optionId; ++i) {
+            _mint(_to, _tokenIndex, 1, "");
+            ++_tokenIndex;
         }
+        // single write to storage
+        tokenIndex = _tokenIndex;
     }
 
     function factoryCanMint(uint256 _optionId)

@@ -73,8 +73,14 @@ contract TokenFactory is
     check will always pass for contract owner.
      */
     function createOptionsAndEmitTransfers() internal {
-        for (uint256 i = 0; i < NUM_OPTIONS; i++) {
-            emit Transfer(address(0), owner(), i);
+        // load from storage, read from memory
+        uint256 numOptions = NUM_OPTIONS;
+        address _owner = owner();
+        for (uint256 i = 0; i < numOptions; ) {
+            emit Transfer(address(0), _owner, i);
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -156,9 +162,16 @@ contract TokenFactory is
 
     ///@notice "burn" option by sending it to 0 address. This will hide all active listings. Called as part of interactBurnInvalidOptionIds
     function _burnInvalidOptions() internal {
-        for (uint256 i; i < NUM_OPTIONS; ++i) {
-            if (!token.factoryCanMint(i)) {
-                emit Transfer(owner(), address(0), i);
+        // load vars from storage, read from memory
+        uint256 numOptions = NUM_OPTIONS;
+        address _owner = owner();
+        FactoryMintable _token = token;
+        for (uint256 i; i < numOptions; ) {
+            if (!_token.factoryCanMint(i)) {
+                emit Transfer(_owner, address(0), i);
+            }
+            unchecked {
+                ++i;
             }
         }
     }
