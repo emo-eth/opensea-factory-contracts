@@ -52,6 +52,7 @@ abstract contract FactoryMintableERC721 is
     function tokenURI(uint256 _tokenId)
         public
         view
+        virtual
         override
         returns (string memory)
     {
