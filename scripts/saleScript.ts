@@ -6,6 +6,9 @@ dotenv.config();
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 const mnemonic = fs.readFileSync(".mnemonic").toString().trim();
+const PRIVATE_KEY = process.env.PK;
+const secret = mnemonic || PRIVATE_KEY;
+
 const ETH_RPC_URL = process.env.ETH_RPC_URL
 const FACTORY_CONTRACT_ADDRESS = process.env.FACTORY_CONTRACT_ADDRESS;
 const FACTORY_CONTRACT_OWNER_ADDRESS =
@@ -15,7 +18,7 @@ const NUM_ORDERS = +process.env.NUM_ORDERS
 const FACTORY_OPTION_ID = process.env.FACTORY_OPTION_ID;
 const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 
-if (!mnemonic || !ETH_RPC_URL || !NETWORK || !FACTORY_CONTRACT_OWNER_ADDRESS) {
+if (!secret || !ETH_RPC_URL || !NETWORK || !FACTORY_CONTRACT_OWNER_ADDRESS) {
     console.error(
         "Please set a mnemonic, Alchemy/Infura key, owner, network, API key, nft contract, and factory contract address."
     );
@@ -26,7 +29,7 @@ if (!FACTORY_CONTRACT_ADDRESS) {
 }
 
 
-const provider = new HDWalletProvider(mnemonic, ETH_RPC_URL);
+const provider = new HDWalletProvider(secret, ETH_RPC_URL);
 const seaport = new OpenSeaPort(
     provider,
     {
