@@ -53,7 +53,6 @@ contract TokenFactoryTest is DSTestPlusPlus {
         vm.expectEmit(true, true, true, false);
         emit Transfer(address(0), address(this), 1);
         test.restoreOption(1);
-        revert("ExpectEmit is not working");
     }
 
     function testSetBaseOptionURI() public {
@@ -92,13 +91,13 @@ contract TokenFactoryTest is DSTestPlusPlus {
         assertTrue(mintable.factoryCanMint(3));
         assertTrue(mintable.factoryCanMint(4));
         vm.expectEmit(true, true, true, false);
-        emit Transfer(address(this), address(0), 99999);
-        // should "burn" options 2, 3, 4
+        emit Transfer(address(this), address(0), 4);
+        emit Transfer(address(this), address(0), 3);
+        emit Transfer(address(this), address(0), 2); // should "burn" options 2, 3, 4
         test.transferFrom(address(this), address(this), 4);
         assertFalse(mintable.factoryCanMint(2));
         assertFalse(mintable.factoryCanMint(3));
         assertFalse(mintable.factoryCanMint(4));
-        revert("ExpectEmit is not working");
     }
 
     function testSafeTransferFromMints() public {
@@ -126,13 +125,15 @@ contract TokenFactoryTest is DSTestPlusPlus {
         assertTrue(mintable.factoryCanMint(3));
         assertTrue(mintable.factoryCanMint(4));
         vm.expectEmit(true, true, true, false);
-        emit Transfer(address(this), address(0), 99999);
+        emit Transfer(address(this), address(0), 4);
+        emit Transfer(address(this), address(0), 3);
+        emit Transfer(address(this), address(0), 2);
+
         // should "burn" options 2, 3, 4
         test.transferFrom(address(this), address(this), 4);
         assertFalse(mintable.factoryCanMint(2));
         assertFalse(mintable.factoryCanMint(3));
         assertFalse(mintable.factoryCanMint(4));
-        revert("ExpectEmit is not working");
     }
 
     function testIsApprovedForAll() public {
