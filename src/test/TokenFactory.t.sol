@@ -31,7 +31,6 @@ contract TokenFactoryTest is DSTestPlusPlus {
 
         test = TokenFactory(mintable.tokenFactory());
         registry.registerProxy(address(this), address(1234));
-        test.setProxyAddress(address(registry));
     }
 
     function testConstructorInitializesValues() public {

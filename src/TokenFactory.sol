@@ -5,7 +5,7 @@ pragma solidity >=0.8.4;
 import {OwnerPausable} from "ac/util/OwnerPausable.sol";
 import {Strings} from "oz/utils/Strings.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
-import {AllowsProxyFromConfigurableRegistry} from "ac/util/AllowsProxyFromConfigurableRegistry.sol";
+import {AllowsProxyFromImmutableRegistry} from "ac/util/AllowsProxyFromImmutableRegistry.sol";
 import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
 import {ERC721} from "./token/ERC721.sol";
 
@@ -13,7 +13,7 @@ import {ERC721} from "./token/ERC721.sol";
 contract TokenFactory is
     ERC721,
     OwnerPausable,
-    AllowsProxyFromConfigurableRegistry,
+    AllowsProxyFromImmutableRegistry,
     ReentrancyGuard
 {
     using Strings for uint256;
@@ -37,7 +37,7 @@ contract TokenFactory is
         address _proxyAddress
     )
         ERC721(_name, _symbol)
-        AllowsProxyFromConfigurableRegistry(_proxyAddress, true)
+        AllowsProxyFromImmutableRegistry(_proxyAddress, true)
     {
         token = FactoryMintable(msg.sender);
         baseOptionURI = _baseOptionURI;
