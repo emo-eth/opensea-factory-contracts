@@ -30,7 +30,7 @@ abstract contract FactoryMintableERC1155 is
                     string.concat(_name, " Factory"),
                     string.concat(_symbol, "FACTORY"),
                     _baseOptionURI,
-                    msg.sender,
+                    msg.sender, // pass msg.sender as owner to TokenFactory
                     _numOptions,
                     _proxyAddress
                 )
