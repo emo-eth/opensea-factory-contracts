@@ -27,6 +27,7 @@ abstract contract FactoryMintableERC721 is
         uint256 _numOptions
     )
         ERC721(_name, _symbol)
+        ///@dev mainnet: 0xa5409ec958c83c3f309868babaca7c86dcb077c1 rinkeby: 0x1e525eeaf261ca41b809884cbde9dd9e1619573a
         AllowsProxyFromRegistry(_proxyAddress)
         /// @dev construct a new TokenFactory and pass its address to the FactoryMintable constructor
         FactoryMintable(
