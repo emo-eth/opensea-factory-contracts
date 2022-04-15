@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// Modified 2022 from github.com/divergencetech/ethier
 pragma solidity >=0.8.4;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -155,7 +154,32 @@ contract TokenFactory is
         _burnInvalidOptions();
     }
 
-    ///@notice "burn" option by sending it to 0 address. This will hide all active listings. Called as part of interactBurnInvalidOptionIds
+    /**
+    @notice "burn" options by sending them to 0 address. This will hide all active listings. Called as part of interactBurnInvalidOptionIds
+    
+    Flow diagram:
+    
+┌────────────────────────────────┐              ┌────────────────────────┐
+│Factory Contract                │              │NFT is FactoryMintable  │
+│                                │              │                        │
+│ ┌ ─ ─ ─ ─ ─ ─ ─                │              │    ┌ ─ ─ ─ ─ ─ ─ ┐     │
+│  transferFrom()│────────────┬──┼──────────────┼───▶ factoryMint()      │
+│ └ ─ ─ ─ ─ ─ ─ ─             │  │              │    └ ─ ─ ─ ─ ─ ─ ┘     │
+│                             │  │              │    ┌ ─ ─ ─ ─ ─ ─ ─ ─   │
+│ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐ │post-mint      ┌ ┼ ─ ▶ factoryCanMint()│  │
+│   _burnInvalidOptionIds()  ◀┘  │              │    └ ─ ─ ─ ─ ─ ─ ─ ─   │
+│ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘    │            │ └────────────────────────┘
+│              ║                 │                                        
+│              ║─ ─ ─ ─ each optionId ─ ─ ─ ─ ┘                           
+└──────────────╬─────────────────┘                                        
+               ║                                                          
+               ║                                                          
+               ║                                                          
+               ║                                                          
+               ║                                                          
+               ╚══emit Transfer(dev, 0, optionId) events══▶0x0            
+                          for invalid option IDs           (null address) 
+    */
     function _burnInvalidOptions() internal {
         // load vars from storage, read from memory
         uint256 numOptions = NUM_OPTIONS;
