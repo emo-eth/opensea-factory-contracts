@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import {Context} from "oz/utils/Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IFactoryMintable} from "./IFactoryMintable.sol";
 
 abstract contract FactoryMintable is IFactoryMintable, Context {
-    address public tokenFactory;
+    address public immutable tokenFactory;
+
+    // this abstract class needs its own constructor so tokenFactory can be marked immutable, saving gas when reading
+    constructor(address _tokenFactory) {
+        tokenFactory = _tokenFactory;
+    }
 
     error NotTokenFactory();
     error FactoryCannotMint();

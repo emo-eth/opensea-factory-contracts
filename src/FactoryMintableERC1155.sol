@@ -2,18 +2,18 @@
 
 pragma solidity >=0.8.4;
 
-import {OwnerPausable} from "ac/util/OwnerPausable.sol";
-import {Strings} from "oz/utils/Strings.sol";
-import {ERC1155} from "oz/token/ERC1155/ERC1155.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
-import {AllowsProxyFromConfigurableRegistry} from "ac/util/AllowsProxyFromConfigurableRegistry.sol";
+import {AllowsProxyFromRegistry} from "./utils/AllowsProxyFromRegistry.sol";
 import {TokenFactory} from "./TokenFactory.sol";
+import {DSTestPlusPlus} from "./test/testhelpers/DSTestPlusPlus.sol";
 
 abstract contract FactoryMintableERC1155 is
     ERC1155,
-    OwnerPausable,
     FactoryMintable,
-    AllowsProxyFromConfigurableRegistry
+    AllowsProxyFromRegistry
 {
     constructor(
         string memory _name,
@@ -24,17 +24,18 @@ abstract contract FactoryMintableERC1155 is
         uint256 _numOptions
     )
         ERC1155(_baseUri)
-        AllowsProxyFromConfigurableRegistry(_proxyAddress, true)
-    {
-        tokenFactory = address(
-            new TokenFactory(
-                string.concat(_name, " Factory"),
-                string.concat(_symbol, "FACTORY"),
-                _baseOptionURI,
-                owner(),
-                _numOptions,
-                _proxyAddress
+        FactoryMintable(
+            address(
+                new TokenFactory(
+                    string.concat(_name, " Factory"),
+                    string.concat(_symbol, "FACTORY"),
+                    _baseOptionURI,
+                    msg.sender,
+                    _numOptions,
+                    _proxyAddress
+                )
             )
-        );
-    }
+        )
+        AllowsProxyFromRegistry(_proxyAddress)
+    {}
 }

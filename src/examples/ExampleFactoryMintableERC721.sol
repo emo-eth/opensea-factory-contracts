@@ -3,8 +3,8 @@
 pragma solidity >=0.8.4;
 
 import {FactoryMintableERC721} from "../FactoryMintableERC721.sol";
-import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
-import {Strings} from "oz/utils/Strings.sol";
+import {ReentrancyGuard} from "@rari-capital/solmate/src/utils/ReentrancyGuard.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ExampleFactoryMintableERC721 is
     FactoryMintableERC721,

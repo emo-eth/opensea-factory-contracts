@@ -16,7 +16,7 @@ contract ExampleFactoryMintableERC721Test is DSTestPlusPlus {
         assertEq("test", test.name());
         assertEq("TEST", test.symbol());
         assertEq("ipfs://test", test.baseURI());
-        assertEq(address(1), test.proxyAddress());
+        assertEq(address(1), test.proxyRegistryAddress());
         TokenFactory factory = TokenFactory(test.tokenFactory());
         assertEq("ipfs://option", factory.baseOptionURI());
         assertEq(10000, factory.NUM_OPTIONS());

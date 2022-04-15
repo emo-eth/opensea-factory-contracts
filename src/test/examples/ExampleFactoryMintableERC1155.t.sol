@@ -4,7 +4,7 @@ pragma solidity >=0.8.4;
 import {DSTestPlusPlus} from "ac/test/helpers/DSTestPlusPlus.sol";
 import {ExampleFactoryMintableERC1155} from "../../examples/ExampleFactoryMintableERC1155.sol";
 import {TokenFactory} from "../../TokenFactory.sol";
-import {ERC1155Receiver} from "oz/token/ERC1155/utils/ERC1155Receiver.sol";
+import {ERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 
 contract ExampleFactoryMintableERC1155Test is DSTestPlusPlus, ERC1155Receiver {
     ExampleFactoryMintableERC1155 test;
@@ -23,7 +23,7 @@ contract ExampleFactoryMintableERC1155Test is DSTestPlusPlus, ERC1155Receiver {
 
     function testConstructorInitializesValues() public {
         assertEq("://test", test.uri(0));
-        assertEq(address(1), test.proxyAddress());
+        assertEq(address(1), test.proxyRegistryAddress());
         TokenFactory factory = TokenFactory(test.tokenFactory());
         assertEq("://option", factory.baseOptionURI());
         assertEq(10000, factory.NUM_OPTIONS());

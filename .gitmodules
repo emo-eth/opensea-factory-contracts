@@ -1,15 +1,6 @@
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/rari-capital/solmate
-[submodule "lib/art-contracts"]
-	path = lib/art-contracts
-	url = https://github.com/jameswenzel/art-contracts
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/brockelmore/forge-std

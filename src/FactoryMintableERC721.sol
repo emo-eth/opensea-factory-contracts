@@ -2,18 +2,18 @@
 
 pragma solidity >=0.8.4;
 
-import {OwnerPausable} from "ac/util/OwnerPausable.sol";
-import {Strings} from "oz/utils/Strings.sol";
-import {ERC721} from "sm/tokens/ERC721.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ERC721} from "@rari-capital/solmate/src/tokens/ERC721.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
-import {AllowsProxyFromConfigurableRegistry} from "ac/util/AllowsProxyFromConfigurableRegistry.sol";
+import {AllowsProxyFromRegistry} from "./utils/AllowsProxyFromRegistry.sol";
 import {TokenFactory} from "./TokenFactory.sol";
 
 abstract contract FactoryMintableERC721 is
     ERC721,
-    OwnerPausable,
+    Ownable,
     FactoryMintable,
-    AllowsProxyFromConfigurableRegistry
+    AllowsProxyFromRegistry
 {
     using Strings for uint256;
     string public baseURI;
@@ -27,19 +27,22 @@ abstract contract FactoryMintableERC721 is
         uint256 _numOptions
     )
         ERC721(_name, _symbol)
-        AllowsProxyFromConfigurableRegistry(_proxyAddress, true)
+        AllowsProxyFromRegistry(_proxyAddress)
+        /// @dev construct a new TokenFactory and pass its address to the FactoryMintable constructor
+        FactoryMintable(
+            address(
+                new TokenFactory(
+                    string.concat(_name, " Factory"),
+                    string.concat(_symbol, "FACTORY"),
+                    _baseOptionURI,
+                    msg.sender,
+                    _numOptions,
+                    _proxyAddress
+                )
+            )
+        )
     {
         baseURI = _baseUri;
-        tokenFactory = address(
-            new TokenFactory(
-                string.concat(_name, " Factory"),
-                string.concat(_symbol, "FACTORY"),
-                _baseOptionURI,
-                owner(),
-                _numOptions,
-                _proxyAddress
-            )
-        );
     }
 
     function factoryCanMint(uint256 _tokenId)

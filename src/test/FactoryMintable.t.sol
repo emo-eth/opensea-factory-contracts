@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import {DSTestPlusPlus} from "ac/test/helpers/DSTestPlusPlus.sol";
-import {stdCheats, stdError, Vm} from "std/stdlib.sol";
+import {DSTestPlusPlus} from "./testhelpers/DSTestPlusPlus.sol";
+import {stdError, Vm} from "forge-std/Test.sol";
 import {FactoryMintable} from "../FactoryMintable.sol";
 import {TokenFactory} from "../TokenFactory.sol";
 
@@ -10,17 +10,20 @@ contract FactoryMintableImpl is FactoryMintable {
     uint256 public immutable MAX_OPTION_ID;
     uint256 public tokenIndex;
 
-    constructor(uint256 _maxOptionId) {
-        tokenFactory = address(
-            new TokenFactory(
-                "test",
-                "TEST",
-                "://test",
-                msg.sender,
-                _maxOptionId,
-                address(1234)
+    constructor(uint256 _maxOptionId)
+        FactoryMintable(
+            address(
+                new TokenFactory(
+                    "test",
+                    "TEST",
+                    "://test",
+                    msg.sender,
+                    _maxOptionId,
+                    address(1234)
+                )
             )
-        );
+        )
+    {
         MAX_OPTION_ID = _maxOptionId;
     }
 

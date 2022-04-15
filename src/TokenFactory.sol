@@ -2,27 +2,28 @@
 // Modified 2022 from github.com/divergencetech/ethier
 pragma solidity >=0.8.4;
 
-import {OwnerPausable} from "ac/util/OwnerPausable.sol";
-import {Strings} from "oz/utils/Strings.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
-import {AllowsProxyFromImmutableRegistry} from "ac/util/AllowsProxyFromImmutableRegistry.sol";
-import {ReentrancyGuard} from "sm/utils/ReentrancyGuard.sol";
+import {AllowsProxyFromRegistry} from "./utils/AllowsProxyFromRegistry.sol";
+import {ReentrancyGuard} from "@rari-capital/solmate/src/utils/ReentrancyGuard.sol";
 import {ERC721} from "./token/ERC721.sol";
 
 /// @author emo.eth
 contract TokenFactory is
     ERC721,
-    OwnerPausable,
-    AllowsProxyFromImmutableRegistry,
+    Ownable,
+    AllowsProxyFromRegistry,
     ReentrancyGuard
 {
     using Strings for uint256;
+
+    /// @dev immutable+constant state variables don't use storage slots; are cheap to read
     uint256 public immutable NUM_OPTIONS;
-
     /// @notice Contract that deployed this factory.
-    FactoryMintable public token;
+    FactoryMintable public immutable token;
 
-    /// @notice Base URI for constructing tokenURI values for options.
+    /// @notice Base URI for constructing tokenURI for options.
     string public baseOptionURI;
 
     error NotOwnerOrProxy();
@@ -35,10 +36,7 @@ contract TokenFactory is
         address _owner,
         uint256 _numOptions,
         address _proxyAddress
-    )
-        ERC721(_name, _symbol)
-        AllowsProxyFromImmutableRegistry(_proxyAddress, true)
-    {
+    ) ERC721(_name, _symbol) AllowsProxyFromRegistry(_proxyAddress) {
         token = FactoryMintable(msg.sender);
         baseOptionURI = _baseOptionURI;
         NUM_OPTIONS = _numOptions;
@@ -74,9 +72,8 @@ contract TokenFactory is
      */
     function createOptionsAndEmitTransfers() internal {
         // load from storage, read from memory
-        uint256 numOptions = NUM_OPTIONS;
         address _owner = owner();
-        for (uint256 i = 0; i < numOptions; ) {
+        for (uint256 i = 0; i < NUM_OPTIONS; ) {
             emit Transfer(address(0), _owner, i);
             unchecked {
                 ++i;
@@ -101,7 +98,6 @@ contract TokenFactory is
         override
         nonReentrant
         onlyOwnerOrProxy
-        whenNotPaused
         interactBurnInvalidOptionId(_optionId)
     {
         token.factoryMint(_optionId, _to);
@@ -116,7 +112,6 @@ contract TokenFactory is
         override
         nonReentrant
         onlyOwnerOrProxy
-        whenNotPaused
         interactBurnInvalidOptionId(_optionId)
     {
         token.factoryMint(_optionId, _to);
@@ -165,9 +160,8 @@ contract TokenFactory is
         // load vars from storage, read from memory
         uint256 numOptions = NUM_OPTIONS;
         address _owner = owner();
-        FactoryMintable _token = token;
         for (uint256 i; i < numOptions; ) {
-            if (!_token.factoryCanMint(i)) {
+            if (!token.factoryCanMint(i)) {
                 emit Transfer(_owner, address(0), i);
             }
             unchecked {
@@ -181,9 +175,21 @@ contract TokenFactory is
     @dev will re-validate listings on OpenSea frontend if an option becomes eligible to mint again
     eg, if max supply is increased
     */
-    function restoreOption(uint256 _optionId) external onlyOwner {
+    function restoreOption(uint256 _optionId) public onlyOwner {
         if (token.factoryCanMint(_optionId)) {
             emit Transfer(address(0), owner(), _optionId);
+        }
+    }
+
+    /**
+    @notice iterate over all options and restore all that are mintable
+     */
+    function restoreMintableOptions() external onlyOwner {
+        for (uint256 i = 0; i < NUM_OPTIONS; ) {
+            restoreOption(i);
+            unchecked {
+                ++i;
+            }
         }
     }
 

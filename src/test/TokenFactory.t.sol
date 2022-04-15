@@ -2,10 +2,10 @@
 pragma solidity >=0.8.4;
 
 import {DSTestPlusPlus} from "ac/test/helpers/DSTestPlusPlus.sol";
-import {stdCheats, stdError, Vm} from "std/stdlib.sol";
+import {stdError, Vm} from "forge-std/Test.sol";
 import {FactoryMintable} from "../FactoryMintable.sol";
 import {TokenFactory} from "../TokenFactory.sol";
-import {ProxyRegistry, OwnableDelegateProxy} from "ac/util/ProxyRegistry.sol";
+import {ProxyRegistry, OwnableDelegateProxy} from "../utils/ProxyRegistry.sol";
 import {ExampleFactoryMintableERC721} from "../examples/ExampleFactoryMintableERC721.sol";
 
 contract ProxyRegistryImpl is ProxyRegistry {
@@ -23,14 +23,15 @@ contract TokenFactoryTest is DSTestPlusPlus {
 
     function setUp() public {
         registry = new ProxyRegistryImpl();
+        emit log_named_address("sender", msg.sender);
         mintable = new ExampleFactoryMintableERC721(
             5,
             address(registry),
             maxOptionId
         );
 
-        test = TokenFactory(mintable.tokenFactory());
-        registry.registerProxy(address(this), address(1234));
+        // test = TokenFactory(mintable.tokenFactory());
+        // registry.registerProxy(address(this), address(1234));
     }
 
     function testConstructorInitializesValues() public {
@@ -38,7 +39,7 @@ contract TokenFactoryTest is DSTestPlusPlus {
         assertEq(test.symbol(), "TESTFACTORY");
         assertEq(test.tokenURI(0), "ipfs://option0");
         assertEq(test.owner(), address(this));
-        assertEq(test.proxyAddress(), address(registry));
+        assertEq(test.proxyRegistryAddress(), address(registry));
         assertEq(test.NUM_OPTIONS(), 5);
     }
 
@@ -79,11 +80,11 @@ contract TokenFactoryTest is DSTestPlusPlus {
         test.transferFrom(address(this), address(this), 1);
     }
 
-    function testTransferFromWhenNotPaused() public {
-        test.pause();
-        vm.expectRevert("Pausable: paused");
-        test.transferFrom(address(this), address(this), 1);
-    }
+    // function testTransferFromWhenNotPaused() public {
+    //     test.pause();
+    //     vm.expectRevert("Pausable: paused");
+    //     test.transferFrom(address(this), address(this), 1);
+    // }
 
     function testTransferFromInteractBurnInvalidOptionId() public {
         assertTrue(mintable.factoryCanMint(2));
@@ -113,11 +114,11 @@ contract TokenFactoryTest is DSTestPlusPlus {
         test.safeTransferFrom(address(this), address(this), 1);
     }
 
-    function testSafeTransferFromWhenNotPaused() public {
-        test.pause();
-        vm.expectRevert("Pausable: paused");
-        test.safeTransferFrom(address(this), address(this), 1);
-    }
+    // function testSafeTransferFromWhenNotPaused() public {
+    //     test.pause();
+    //     vm.expectRevert("Pausable: paused");
+    //     test.safeTransferFrom(address(this), address(this), 1);
+    // }
 
     function testSafeTransferFromInteractBurnInvalidOptionId() public {
         assertTrue(mintable.factoryCanMint(2));

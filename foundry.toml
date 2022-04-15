@@ -4,10 +4,12 @@ out = 'out'
 libs = ['lib']
 optimizer = true
 optimizer_runs = 1000000
-remappings = ['ds-test/=lib/ds-test/src/',
-'ac/=lib/art-contracts/src/',
-'sm/=lib/solmate/src/',
-'oz/=lib/openzeppelin-contracts/contracts/',
-'std/=lib/forge-std/src/']
+remappings = [
+    '@openzeppelin/=node_modules/@openzeppelin/',
+    'hardhat/=node_modules/hardhat/',
+    'ds-test/=lib/ds-test/src/',
+    '@rari-capital/=node_modules/@rari-capital',
+    'forge-std/=lib/forge-std/src/',
+]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config
