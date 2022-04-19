@@ -18,9 +18,12 @@ contract TokenFactory is
     using Strings for uint256;
 
     /// @dev immutable+constant state variables don't use storage slots; are cheap to read
-    uint256 public immutable NUM_OPTIONS;
+    uint16 public immutable NUM_OPTIONS;
     /// @notice Contract that deployed this factory.
     FactoryMintable public immutable token;
+
+    // bit field that tracks live optionIds
+    uint256 internal liveOptions;
 
     /// @notice Base URI for constructing tokenURI for options.
     string public baseOptionURI;
@@ -33,7 +36,7 @@ contract TokenFactory is
         string memory _symbol,
         string memory _baseOptionURI,
         address _owner,
-        uint256 _numOptions,
+        uint16 _numOptions,
         address _proxyAddress
     ) ERC721(_name, _symbol) AllowsProxyFromRegistry(_proxyAddress) {
         token = FactoryMintable(msg.sender);
@@ -42,6 +45,7 @@ contract TokenFactory is
         // first owner will be the token that deploys the contract
         transferOwnership(_owner);
         createOptionsAndEmitTransfers();
+        liveOptions = (1 << NUM_OPTIONS) - 1;
     }
 
     modifier onlyOwnerOrProxy() {
@@ -183,15 +187,59 @@ contract TokenFactory is
     function _burnInvalidOptions() internal {
         // load vars from storage, read from memory
         uint256 numOptions = NUM_OPTIONS;
+
+        // get a copy of liveOptions in memory to update before writing to storage
+        uint256 _liveOptions = liveOptions;
+        // it's slightly cheaper to grab a second copy to compare against before writing to storage,
+        // even if the value stays the same
+        uint256 liveOptionsCopy = _liveOptions;
+
         address _owner = owner();
         for (uint256 i; i < numOptions; ) {
-            if (!token.factoryCanMint(i)) {
-                emit Transfer(_owner, address(0), i);
+            if (!_optionIsBurned(_liveOptions, i) && !token.factoryCanMint(i)) {
+                _liveOptions = _markOptionBurned(_liveOptions, i);
+                _burnOption(_owner, i);
             }
             unchecked {
                 ++i;
             }
         }
+        if (_liveOptions != liveOptionsCopy) {
+            liveOptions = _liveOptions;
+        }
+    }
+
+    function burnOption(uint256 _optionId) public onlyOwner {
+        _burnOption(owner(), _optionId);
+    }
+
+    function _burnOption(address _from, uint256 _optionId) internal {
+        emit Transfer(_from, address(0), _optionId);
+    }
+
+    /// @notice determine if an option is still live by checking its bit is 1 in the liveOptions bit field
+    function _optionIsBurned(uint256 _bitField, uint256 _optionId)
+        internal
+        pure
+        returns (bool)
+    {
+        return (_bitField & (1 << _optionId)) == 0;
+    }
+
+    function _markOptionBurned(uint256 _bitField, uint256 _optionId)
+        internal
+        pure
+        returns (uint256)
+    {
+        return _bitField & ~(1 << _optionId);
+    }
+
+    function _markOptionLive(uint256 _bitField, uint256 _optionId)
+        internal
+        pure
+        returns (uint256)
+    {
+        return _bitField | (1 << _optionId);
     }
 
     /**
@@ -200,8 +248,19 @@ contract TokenFactory is
     eg, if max supply is increased
     */
     function restoreOption(uint256 _optionId) public onlyOwner {
+        if (_optionId >= NUM_OPTIONS) {
+            revert InvalidOptionId();
+        }
         if (token.factoryCanMint(_optionId)) {
-            emit Transfer(address(0), owner(), _optionId);
+            _restoreOption(_optionId);
+            // TODO: test this
+            assembly {
+                sstore(
+                    liveOptions.slot,
+                    or(sload(liveOptions.slot), shl(_optionId, 1))
+                )
+            }
+            // liveOptions = _markOptionLive(liveOptions, _optionId);
         }
     }
 
@@ -209,12 +268,24 @@ contract TokenFactory is
     @notice iterate over all options and restore all that are mintable
      */
     function restoreMintableOptions() external onlyOwner {
+        uint256 _liveOptions = liveOptions;
         for (uint256 i = 0; i < NUM_OPTIONS; ) {
-            restoreOption(i);
+            if (token.factoryCanMint(i)) {
+                _restoreOption(i);
+                // assembly {
+                //     _liveOptions := or(_liveOptions, shl(i, 1))
+                // }
+                _liveOptions = _markOptionLive(_liveOptions, i);
+            }
             unchecked {
                 ++i;
             }
         }
+        liveOptions = _liveOptions;
+    }
+
+    function _restoreOption(uint256 _optionId) internal {
+        emit Transfer(address(0), owner(), _optionId);
     }
 
     function supportsFactoryInterface() external pure returns (bool) {

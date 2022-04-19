@@ -7,10 +7,10 @@ import {FactoryMintable} from "../FactoryMintable.sol";
 import {TokenFactory} from "../TokenFactory.sol";
 
 contract FactoryMintableImpl is FactoryMintable {
-    uint256 public immutable MAX_OPTION_ID;
+    uint16 public immutable MAX_OPTION_ID;
     uint256 public tokenIndex;
 
-    constructor(uint256 _maxOptionId)
+    constructor(uint16 _maxOptionId)
         FactoryMintable(
             address(
                 new TokenFactory(
@@ -57,7 +57,7 @@ contract FactoryMintableImpl is FactoryMintable {
 
 contract FactoryMintableTest is DSTestPlusPlus {
     FactoryMintable test;
-    uint256 maxOptionId;
+    uint16 maxOptionId;
 
     function setUp() public {
         maxOptionId = 5;

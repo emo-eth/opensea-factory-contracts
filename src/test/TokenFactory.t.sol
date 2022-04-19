@@ -15,11 +15,14 @@ contract ProxyRegistryImpl is ProxyRegistry {
 }
 
 contract TokenFactoryTest is DSTestPlusPlus {
+    // StdStorage internal stdstore;
+    // using stdStorage for StdStorage;
     ExampleFactoryMintableERC721 mintable;
     TokenFactory test;
     uint256 maxSupply = 5;
-    uint256 maxOptionId = 5;
+    uint16 maxOptionId = 5;
     ProxyRegistryImpl registry;
+    bytes32 LIVE_OPTIONS_SLOT = bytes32(uint256(8));
 
     function setUp() public {
         registry = new ProxyRegistryImpl();
@@ -80,13 +83,49 @@ contract TokenFactoryTest is DSTestPlusPlus {
         test.transferFrom(address(this), address(this), 1);
     }
 
-    // function testTransferFromWhenNotPaused() public {
-    //     test.pause();
-    //     vm.expectRevert("Pausable: paused");
-    //     test.transferFrom(address(this), address(this), 1);
-    // }
-
     function testTransferFromInteractBurnInvalidOptionId() public {
+        // for (uint256 i; i < 12; i++) {
+        //     emit log_named_bytes32("var", vm.load(address(test), bytes32(i)));
+        // }
+
+        assertEq(
+            vm.load(address(test), LIVE_OPTIONS_SLOT),
+            bytes32(uint256(31))
+        );
+        assertTrue(mintable.factoryCanMint(2));
+        assertTrue(mintable.factoryCanMint(3));
+        assertTrue(mintable.factoryCanMint(4));
+
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(this), address(0), 0); // 0 is burned because factory always marks it as invalid, fix?
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(this), address(0), 2); // should "burn" options 0, 2, 3, 4
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(this), address(0), 3);
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(this), address(0), 4);
+
+        test.transferFrom(address(this), address(this), 4);
+        assertEq(
+            vm.load(address(test), LIVE_OPTIONS_SLOT),
+            bytes32(uint256(2)) // mint 1 option is off by 1
+        );
+        assertFalse(mintable.factoryCanMint(2));
+        assertFalse(mintable.factoryCanMint(3));
+        assertFalse(mintable.factoryCanMint(4));
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(this), address(0), 1);
+        test.transferFrom(address(this), address(this), 1);
+        assertEq(
+            vm.load(address(test), LIVE_OPTIONS_SLOT),
+            bytes32(uint256(0))
+        );
+        assertFalse(mintable.factoryCanMint(1));
+    }
+
+    function testFailTransferFromInteractBurnInvalidOptionIdOnlyBurnsUnburnedIds()
+        public
+    {
         assertTrue(mintable.factoryCanMint(2));
         assertTrue(mintable.factoryCanMint(3));
         assertTrue(mintable.factoryCanMint(4));
@@ -98,6 +137,10 @@ contract TokenFactoryTest is DSTestPlusPlus {
         assertFalse(mintable.factoryCanMint(2));
         assertFalse(mintable.factoryCanMint(3));
         assertFalse(mintable.factoryCanMint(4));
+        // test we don't re-burn options
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(this), address(0), 4);
+        test.transferFrom(address(this), address(this), 1);
     }
 
     function testSafeTransferFromMints() public {
@@ -173,8 +216,29 @@ contract TokenFactoryTest is DSTestPlusPlus {
         test.transferFrom(address(this), address(this), 5);
         assertEq(address(0), test.ownerOf(10000));
         mintable.setMaxSupply(11111);
-        test.restoreOption(10000);
-        assertEq(address(this), test.ownerOf(10000));
+        test.restoreOption(1);
+        assertEq(address(this), test.ownerOf(1));
+        assertEq(
+            vm.load(address(test), LIVE_OPTIONS_SLOT),
+            bytes32(uint256(2))
+        );
+    }
+
+    function testRestoreMintableOptions() public {
+        // todo: this should probably fail
+        test.transferFrom(address(this), address(this), 5);
+        assertEq(address(0), test.ownerOf(10000));
+        mintable.setMaxSupply(11111);
+        test.restoreMintableOptions();
+        assertEq(address(this), test.ownerOf(1));
+        assertEq(address(this), test.ownerOf(2));
+        assertEq(address(this), test.ownerOf(3));
+        assertEq(address(this), test.ownerOf(4));
+
+        assertEq(
+            vm.load(address(test), LIVE_OPTIONS_SLOT),
+            bytes32(uint256(30))
+        );
     }
 
     function testRestoreOptionOnlyOwner() public {

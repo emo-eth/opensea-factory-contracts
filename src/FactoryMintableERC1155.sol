@@ -21,7 +21,7 @@ abstract contract FactoryMintableERC1155 is
         string memory _baseUri,
         address _proxyAddress,
         string memory _baseOptionURI,
-        uint256 _numOptions
+        uint16 _numOptions
     )
         ERC1155(_baseUri)
         FactoryMintable(

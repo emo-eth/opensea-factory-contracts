@@ -20,7 +20,7 @@ contract ExampleFactoryMintableERC721 is
     constructor(
         uint256 _maxSupply,
         address _proxy,
-        uint256 _numOptions
+        uint16 _numOptions
     )
         FactoryMintableERC721(
             "test",

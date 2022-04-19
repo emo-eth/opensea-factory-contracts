@@ -17,7 +17,7 @@ contract ExampleFactoryMintableERC1155Test is DSTestPlusPlus, ERC1155Receiver {
             10000,
             address(1),
             "://option",
-            10000
+            100
         );
     }
 
@@ -26,7 +26,7 @@ contract ExampleFactoryMintableERC1155Test is DSTestPlusPlus, ERC1155Receiver {
         assertEq(address(1), test.proxyRegistryAddress());
         TokenFactory factory = TokenFactory(test.tokenFactory());
         assertEq("://option", factory.baseOptionURI());
-        assertEq(10000, factory.NUM_OPTIONS());
+        assertEq(100, factory.NUM_OPTIONS());
     }
 
     function testFactoryMint() public {

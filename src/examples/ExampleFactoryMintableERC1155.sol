@@ -21,7 +21,7 @@ contract ExampleFactoryMintableERC1155 is
         uint256 _maxSupply,
         address _proxyAddress,
         string memory _baseOptionURI,
-        uint256 _numOptions
+        uint16 _numOptions
     )
         FactoryMintableERC1155(
             _name,

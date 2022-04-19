@@ -24,7 +24,7 @@ abstract contract FactoryMintableERC721 is
         string memory _baseUri,
         address _proxyAddress,
         string memory _baseOptionURI,
-        uint256 _numOptions
+        uint16 _numOptions
     )
         ERC721(_name, _symbol)
         ///@dev mainnet: 0xa5409ec958c83c3f309868babaca7c86dcb077c1 rinkeby: 0x1e525eeaf261ca41b809884cbde9dd9e1619573a
