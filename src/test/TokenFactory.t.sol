@@ -222,6 +222,9 @@ contract TokenFactoryTest is DSTestPlusPlus {
             vm.load(address(test), LIVE_OPTIONS_SLOT),
             bytes32(uint256(2))
         );
+
+        vm.expectRevert(TokenFactory.InvalidOptionId.selector);
+        test.restoreOption(42);
     }
 
     function testRestoreMintableOptions() public {

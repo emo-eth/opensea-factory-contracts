@@ -3,7 +3,7 @@ pragma solidity >=0.8.4;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {FactoryMintable} from "./FactoryMintable.sol";
+import {IFactoryMintable} from "./IFactoryMintable.sol";
 import {AllowsProxyFromRegistry} from "./utils/AllowsProxyFromRegistry.sol";
 import {ReentrancyGuard} from "@rari-capital/solmate/src/utils/ReentrancyGuard.sol";
 import {ERC721} from "./token/ERC721.sol";
@@ -20,11 +20,9 @@ contract TokenFactory is
     /// @dev immutable+constant state variables don't use storage slots; are cheap to read
     uint16 public immutable NUM_OPTIONS;
     /// @notice Contract that deployed this factory.
-    FactoryMintable public immutable token;
-
+    IFactoryMintable public immutable token;
     // bit field that tracks live optionIds
     uint256 internal liveOptions;
-
     /// @notice Base URI for constructing tokenURI for options.
     string public baseOptionURI;
 
@@ -39,12 +37,13 @@ contract TokenFactory is
         uint16 _numOptions,
         address _proxyAddress
     ) ERC721(_name, _symbol) AllowsProxyFromRegistry(_proxyAddress) {
-        token = FactoryMintable(msg.sender);
+        token = IFactoryMintable(msg.sender);
         baseOptionURI = _baseOptionURI;
         NUM_OPTIONS = _numOptions;
-        // first owner will be the token that deploys the contract
+        // first owner will be the token that deploys the contract, transfer it to the real owner
         transferOwnership(_owner);
         createOptionsAndEmitTransfers();
+        // mark each option as currently live - 2 ** n - 1 is n 1s in binary
         liveOptions = (1 << NUM_OPTIONS) - 1;
     }
 
@@ -252,15 +251,8 @@ contract TokenFactory is
             revert InvalidOptionId();
         }
         if (token.factoryCanMint(_optionId)) {
-            _restoreOption(_optionId);
-            // TODO: test this
-            assembly {
-                sstore(
-                    liveOptions.slot,
-                    or(sload(liveOptions.slot), shl(_optionId, 1))
-                )
-            }
-            // liveOptions = _markOptionLive(liveOptions, _optionId);
+            _restoreOption(_optionId, owner());
+            liveOptions = _markOptionLive(liveOptions, _optionId);
         }
     }
 
@@ -269,12 +261,10 @@ contract TokenFactory is
      */
     function restoreMintableOptions() external onlyOwner {
         uint256 _liveOptions = liveOptions;
+        address _owner = owner();
         for (uint256 i = 0; i < NUM_OPTIONS; ) {
             if (token.factoryCanMint(i)) {
-                _restoreOption(i);
-                // assembly {
-                //     _liveOptions := or(_liveOptions, shl(i, 1))
-                // }
+                _restoreOption(i, _owner);
                 _liveOptions = _markOptionLive(_liveOptions, i);
             }
             unchecked {
@@ -284,8 +274,8 @@ contract TokenFactory is
         liveOptions = _liveOptions;
     }
 
-    function _restoreOption(uint256 _optionId) internal {
-        emit Transfer(address(0), owner(), _optionId);
+    function _restoreOption(uint256 _optionId, address _to) internal {
+        emit Transfer(address(0), _to, _optionId);
     }
 
     function supportsFactoryInterface() external pure returns (bool) {

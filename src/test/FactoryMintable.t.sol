@@ -12,15 +12,13 @@ contract FactoryMintableImpl is FactoryMintable {
 
     constructor(uint16 _maxOptionId)
         FactoryMintable(
-            address(
-                new TokenFactory(
-                    "test",
-                    "TEST",
-                    "://test",
-                    msg.sender,
-                    _maxOptionId,
-                    address(1234)
-                )
+            new TokenFactory(
+                "test",
+                "TEST",
+                "://test",
+                msg.sender,
+                _maxOptionId,
+                address(1234)
             )
         )
     {
@@ -70,7 +68,7 @@ contract FactoryMintableTest is DSTestPlusPlus {
     }
 
     function testFactoryMint() public {
-        vm.prank(test.tokenFactory());
+        vm.prank(address(test.tokenFactory()));
         test.factoryMint(1, address(this));
     }
 
@@ -80,7 +78,7 @@ contract FactoryMintableTest is DSTestPlusPlus {
     }
 
     function testFactoryMintCannotMint() public {
-        vm.startPrank(test.tokenFactory());
+        vm.startPrank(address(test.tokenFactory()));
         vm.expectRevert(abi.encodeWithSignature("FactoryCannotMint()"));
         test.factoryMint(6, address(this));
     }

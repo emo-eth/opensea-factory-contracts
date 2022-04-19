@@ -25,15 +25,13 @@ abstract contract FactoryMintableERC1155 is
     )
         ERC1155(_baseUri)
         FactoryMintable(
-            address(
-                new TokenFactory(
-                    string.concat(_name, " Factory"),
-                    string.concat(_symbol, "FACTORY"),
-                    _baseOptionURI,
-                    msg.sender, // pass msg.sender as owner to TokenFactory
-                    _numOptions,
-                    _proxyAddress
-                )
+            new TokenFactory(
+                string.concat(_name, " Factory"),
+                string.concat(_symbol, "FACTORY"),
+                _baseOptionURI,
+                msg.sender, // pass msg.sender as owner to TokenFactory
+                _numOptions,
+                _proxyAddress
             )
         )
         AllowsProxyFromRegistry(_proxyAddress)

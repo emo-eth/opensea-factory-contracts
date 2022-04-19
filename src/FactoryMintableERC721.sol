@@ -31,15 +31,13 @@ abstract contract FactoryMintableERC721 is
         AllowsProxyFromRegistry(_proxyAddress)
         /// @dev construct a new TokenFactory and pass its address to the FactoryMintable constructor
         FactoryMintable(
-            address(
-                new TokenFactory(
-                    string.concat(_name, " Factory"),
-                    string.concat(_symbol, "FACTORY"),
-                    _baseOptionURI,
-                    msg.sender, // pass msg.sender as owner to TokenFactory
-                    _numOptions,
-                    _proxyAddress
-                )
+            new TokenFactory(
+                string.concat(_name, " Factory"),
+                string.concat(_symbol, "FACTORY"),
+                _baseOptionURI,
+                msg.sender, // pass msg.sender as owner to TokenFactory
+                _numOptions,
+                _proxyAddress
             )
         )
     {

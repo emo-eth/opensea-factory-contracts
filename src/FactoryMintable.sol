@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IFactoryMintable} from "./IFactoryMintable.sol";
+import {TokenFactory} from "./TokenFactory.sol";
 
 /**
 
@@ -26,10 +27,10 @@ the FactoryMintable contract to the user. The option stays in the dev's wallet, 
                                                                            
  */
 abstract contract FactoryMintable is IFactoryMintable, Context {
-    address public immutable tokenFactory;
+    TokenFactory public immutable tokenFactory;
 
     // this abstract class needs its own constructor so tokenFactory can be marked immutable, saving gas when reading
-    constructor(address _tokenFactory) {
+    constructor(TokenFactory _tokenFactory) {
         tokenFactory = _tokenFactory;
     }
 
@@ -37,7 +38,7 @@ abstract contract FactoryMintable is IFactoryMintable, Context {
     error FactoryCannotMint();
 
     modifier onlyFactory() {
-        if (_msgSender() != tokenFactory) {
+        if (_msgSender() != address(tokenFactory)) {
             revert NotTokenFactory();
         }
         _;
