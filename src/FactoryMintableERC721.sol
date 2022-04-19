@@ -4,7 +4,7 @@ pragma solidity >=0.8.4;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC721} from "@rari-capital/solmate/src/tokens/ERC721.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
 import {AllowsProxyFromRegistry} from "./utils/AllowsProxyFromRegistry.sol";
 import {TokenFactory} from "./TokenFactory.sol";
@@ -35,13 +35,25 @@ abstract contract FactoryMintableERC721 is
                 string.concat(_name, " Factory"),
                 string.concat(_symbol, "FACTORY"),
                 _baseOptionURI,
-                msg.sender, // pass msg.sender as owner to TokenFactory
+                msg.sender, // pass msg.sender as owner to TokenFactory - owner is 0 in constructor
                 _numOptions,
                 _proxyAddress
             )
         )
     {
         baseURI = _baseUri;
+    }
+
+    function isApprovedForAll(address _owner, address _operator)
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
+        return
+            isProxyOfOwner(_owner, _operator) ||
+            super.isApprovedForAll(_owner, _operator);
     }
 
     function factoryCanMint(uint256 _tokenId)

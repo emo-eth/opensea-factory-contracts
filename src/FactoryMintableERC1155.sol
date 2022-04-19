@@ -36,4 +36,15 @@ abstract contract FactoryMintableERC1155 is
         )
         AllowsProxyFromRegistry(_proxyAddress)
     {}
+
+    function isApprovedForAll(address _owner, address _operator)
+        public
+        view
+        override
+        returns (bool)
+    {
+        return
+            isProxyOfOwner(_owner, _operator) ||
+            super.isApprovedForAll(_owner, _operator);
+    }
 }
