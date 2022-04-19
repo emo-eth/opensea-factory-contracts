@@ -59,10 +59,7 @@ contract ExampleFactoryMintableERC1155 is
         override
         returns (bool)
     {
-        if (_optionId == 0 || _optionId > maxSupply) {
-            return false;
-        }
-        if (_optionId > (maxSupply - tokenIndex)) {
+        if (_optionId + 1 > (maxSupply - tokenIndex)) {
             return false;
         }
         return true;
