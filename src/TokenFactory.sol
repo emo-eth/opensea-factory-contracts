@@ -28,6 +28,7 @@ contract TokenFactory is
 
     error NotOwnerOrProxy();
     error InvalidOptionId();
+    error InactiveOptionId();
 
     constructor(
         string memory _name,
@@ -58,6 +59,14 @@ contract TokenFactory is
         // options are 0-indexed so check should be inclusive
         if (_optionId >= NUM_OPTIONS) {
             revert InvalidOptionId();
+        }
+        _;
+    }
+
+    modifier checkOptionLive(uint256 _optionId) {
+        // check if option is live
+        if (_optionIsBurned(liveOptions, _optionId)) {
+            revert InactiveOptionId();
         }
         _;
     }
@@ -100,6 +109,8 @@ contract TokenFactory is
         override
         nonReentrant
         onlyOwnerOrProxy
+        checkValidOptionId(_optionId)
+        checkOptionLive(_optionId)
         interactBurnInvalidOptionId(_optionId)
     {
         token.factoryMint(_optionId, _to);
@@ -114,6 +125,8 @@ contract TokenFactory is
         override
         nonReentrant
         onlyOwnerOrProxy
+        checkValidOptionId(_optionId)
+        checkOptionLive(_optionId)
         interactBurnInvalidOptionId(_optionId)
     {
         token.factoryMint(_optionId, _to);

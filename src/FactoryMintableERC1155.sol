@@ -8,7 +8,6 @@ import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {FactoryMintable} from "./FactoryMintable.sol";
 import {AllowsProxyFromRegistry} from "./utils/AllowsProxyFromRegistry.sol";
 import {TokenFactory} from "./TokenFactory.sol";
-import {DSTestPlusPlus} from "./test/testhelpers/DSTestPlusPlus.sol";
 
 abstract contract FactoryMintableERC1155 is
     ERC1155,

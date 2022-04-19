@@ -43,7 +43,7 @@ contract ExampleFactoryMintableERC721 is
     {
         // load from storage, read+write to memory
         uint256 _tokenIndex = tokenIndex;
-        for (uint256 i; i < _optionId; ++i) {
+        for (uint256 i; i < _optionId + 1; ++i) {
             _mint(_to, _tokenIndex);
             ++_tokenIndex;
         }
@@ -58,10 +58,7 @@ contract ExampleFactoryMintableERC721 is
         override
         returns (bool)
     {
-        if (_optionId == 0 || _optionId > maxSupply) {
-            return false;
-        }
-        if (_optionId > (maxSupply - tokenIndex)) {
+        if ((_optionId + 1) > (maxSupply - tokenIndex)) {
             return false;
         }
         return true;

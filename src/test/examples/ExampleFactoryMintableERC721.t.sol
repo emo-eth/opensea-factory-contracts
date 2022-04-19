@@ -36,8 +36,6 @@ contract ExampleFactoryMintableERC721Test is DSTestPlusPlus {
     function testFactoryMintCanMint() public {
         vm.startPrank(address(test.tokenFactory()));
         vm.expectRevert(errorSig("FactoryCannotMint()"));
-        test.factoryMint(0, address(this));
-        vm.expectRevert(errorSig("FactoryCannotMint()"));
         test.factoryMint(1000000, address(this));
         test.factoryMint(5, address(this));
         vm.expectRevert(errorSig("FactoryCannotMint()"));
@@ -47,7 +45,7 @@ contract ExampleFactoryMintableERC721Test is DSTestPlusPlus {
     function testFactoryCanMint() public {
         assertTrue(test.factoryCanMint(1));
         assertFalse(test.factoryCanMint(10000000));
-        assertFalse(test.factoryCanMint(0));
+        assertTrue(test.factoryCanMint(0));
     }
 
     function testSetMaxSupply() public {
